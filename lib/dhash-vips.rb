@@ -45,19 +45,18 @@ module DHashVips
       return right.uniq[1] if left.count(left.last) > right.count(right.first)
       left.last
     end
-    fail unless 2 == @@median[[1, 2, 2, 2, 2, 2, 3]]
-    fail unless 3 == @@median[[1, 2, 2, 2, 2, 3, 3]]
-    fail unless 3 == @@median[[1, 1, 2, 2, 3, 3, 3]]
-    fail unless 2 == @@median[[1, 1, 1, 2, 3, 3, 3]]
-    fail unless 2 == @@median[[1, 1, 2, 2, 2, 2, 3]]
-    fail unless 2 == @@median[[1, 2, 2, 2, 2, 3]]
-    fail unless 3 == @@median[[1, 2, 2, 3, 3, 3]]
-    fail unless 1 == @@median[[1, 1, 1]]
-    fail unless 1 == @@median[[1, 1]]
 
     def calculate file
+      calculate_for_image(Vips::Image.new_from_file file)
+    end
+
+    def calculate_for_buffer buffer
+      calculate_for_image(Vips::Image.new_from_buffer buffer, '')
+    end
+
+    private
+    def calculate_for_image(image)
       hash_size = 8
-      image = Vips::Image.new_from_file file
       image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height)).colourspace("b-w")
 
       array = image.to_a.map &:flatten
@@ -71,7 +70,6 @@ module DHashVips
       end
       (((((d1 << hash_size * hash_size) + d2) << hash_size * hash_size) + i1) << hash_size * hash_size) + i2
     end
-
   end
 
 end
