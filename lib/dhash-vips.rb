@@ -10,17 +10,17 @@ module DHashVips
       (a ^ b).to_s(2).count "1"
     end
 
-    def pixelate file, hash_size, kernel = nil
+    def pixelate file, hash_size, kernel = nil, colourspace = "b-w"
       image = Vips::Image.new_from_file file
       if kernel
-        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height), kernel: kernel).colourspace("b-w")
+        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height), kernel: kernel).colourspace(colourspace)
       else
-        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height)                ).colourspace("b-w")
+        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height)                ).colourspace(colourspace)
       end
     end
 
-    def calculate file, hash_size = 8, kernel = nil
-      image = pixelate file, hash_size, kernel
+    def calculate file, hash_size = 8, kernel = nil, colourspace = "b-w"
+      image = pixelate file, hash_size, kernel, colourspace
 
       image.cast("int").conv([1, -1]).crop(1, 0, hash_size, hash_size).>(0)./(255).cast("uchar").to_a.join.to_i(2)
     end
@@ -46,18 +46,18 @@ module DHashVips
       left.last
     end
 
-    def calculate file
-      calculate_for_image(Vips::Image.new_from_file file)
+    def calculate file, colourspace = "b-w"
+      calculate_for_image(Vips::Image.new_from_file(file), colourspace)
     end
 
-    def calculate_for_buffer buffer
-      calculate_for_image(Vips::Image.new_from_buffer buffer, '')
+    def calculate_for_buffer buffer, colourspace = "b-w"
+      calculate_for_image(Vips::Image.new_from_buffer(buffer, ''), colourspace)
     end
 
     private
-    def calculate_for_image(image)
+    def calculate_for_image(image, colourspace = "b-w")
       hash_size = 8
-      image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height)).colourspace("b-w")
+      image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height)).colourspace(colourspace)
 
       array = image.to_a.map &:flatten
       d1, i1, d2, i2 = [array, array.transpose].flat_map do |a|
