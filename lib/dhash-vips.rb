@@ -10,7 +10,7 @@ module DHashVips
       (a ^ b).to_s(2).count "1"
     end
 
-    def pixelate file, hash_size, kernel = nil, colourspace = "b-w"
+    def pixelate file, hash_size, kernel = nil, colourspace = nil
       image = Vips::Image.new_from_file file
       if kernel
         image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height), kernel: kernel)
@@ -21,7 +21,7 @@ module DHashVips
       image = image.colourspace(colourspace) unless colourspace.nil?
     end
 
-    def calculate file, hash_size = 8, kernel = nil, colourspace = "b-w"
+    def calculate file, hash_size = 8, kernel = nil, colourspace = nil
       image = pixelate file, hash_size, kernel, colourspace
 
       image.cast("int").conv([1, -1]).crop(1, 0, hash_size, hash_size).>(0)./(255).cast("uchar").to_a.join.to_i(2)
@@ -48,16 +48,16 @@ module DHashVips
       left.last
     end
 
-    def calculate file, colourspace = "b-w"
+    def calculate file, colourspace = nil
       calculate_for_image(Vips::Image.new_from_file(file), colourspace)
     end
 
-    def calculate_for_buffer buffer, colourspace = "b-w"
+    def calculate_for_buffer buffer, colourspace = nil
       calculate_for_image(Vips::Image.new_from_buffer(buffer, ''), colourspace)
     end
 
     private
-    def calculate_for_image(image, colourspace = "b-w")
+    def calculate_for_image(image, colourspace = nil)
       hash_size = 8
       image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height))
       image = image.colourspace(colourspace) unless colourspace.nil?
