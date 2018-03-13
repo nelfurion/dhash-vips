@@ -13,10 +13,12 @@ module DHashVips
     def pixelate file, hash_size, kernel = nil, colourspace = "b-w"
       image = Vips::Image.new_from_file file
       if kernel
-        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height), kernel: kernel).colourspace(colourspace)
+        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height), kernel: kernel)
       else
-        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height)                ).colourspace(colourspace)
+        image.resize((hash_size + 1).fdiv(image.width), vscale: hash_size.fdiv(image.height)                )
       end
+
+      image = image.colourspace(colourspace) unless colourspace.nil?
     end
 
     def calculate file, hash_size = 8, kernel = nil, colourspace = "b-w"
@@ -57,7 +59,8 @@ module DHashVips
     private
     def calculate_for_image(image, colourspace = "b-w")
       hash_size = 8
-      image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height)).colourspace(colourspace)
+      image = image.resize(hash_size.fdiv(image.width), vscale: hash_size.fdiv(image.height))
+      image = image.colourspace(colourspace) unless colourspace.nil?
 
       array = image.to_a.map &:flatten
       d1, i1, d2, i2 = [array, array.transpose].flat_map do |a|
